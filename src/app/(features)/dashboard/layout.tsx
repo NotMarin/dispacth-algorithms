@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import GanttDiagram from "../../../../../../public/GanttDiagram";
+import GanttDiagram from "../../../../public/GanttDiagram";
 import { AppButton } from "@/components/atoms/AppButton/AppButton";
 
-export default function Template() {
+export default function DashboardTemplate() {
   const router = useRouter();
   return (
     <div className="flex h-full">

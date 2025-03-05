@@ -1,5 +1,5 @@
-import Template from "./components/Template/Template";
+import DashboardTemplate from "./layout";
 
 export default function DashBoard() {
-  return <Template />;
+  return <DashboardTemplate />;
 }

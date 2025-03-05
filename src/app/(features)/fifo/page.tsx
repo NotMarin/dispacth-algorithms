@@ -1,3 +1,5 @@
+import FifoTemplate from "./layout";
+
 export default function Fifo() {
-  return <div>Fifo</div>;
+  return <FifoTemplate />;
 }
