@@ -10,7 +10,8 @@ import type {
 // Función principal para calcular la planificación según el algoritmo seleccionado
 export function calculateScheduling(
   processes: Process[],
-  algorithm: SchedulingAlgorithm
+  algorithm: SchedulingAlgorithm,
+  quantum?: number
 ): SchedulingResult {
   switch (algorithm) {
     case "fifo":
@@ -19,6 +20,10 @@ export function calculateScheduling(
       return calculateSJF(processes);
     case "priority":
       return calculatePriority(processes);
+    case "srtf":
+      return calculateSRTF(processes);
+    case "rr":
+      return calculateRoundRobin(processes, quantum || 2);
     default:
       return calculateFIFO(processes);
   }
@@ -217,9 +222,13 @@ function calculatePriority(processes: Process[]): SchedulingResult {
     }
 
     // Seleccionar el proceso con mayor prioridad (menor número = mayor prioridad)
-    const highestPriorityJob = availableProcesses.reduce((prev, curr) =>
-      prev.priority && curr.priority && prev.priority < curr.priority ? prev : curr
-    );
+    const highestPriorityJob = availableProcesses.reduce((prev, curr) => {
+      if (prev.priority !== undefined && curr.priority !== undefined) {
+        if (prev.priority < curr.priority) return prev; // Menor número = mayor prioridad
+        if (prev.priority > curr.priority) return curr;
+      }
+      return prev.arrivalTime <= curr.arrivalTime ? prev : curr; // Desempate FIFO
+    });
 
     // Actualizar estado a RUNNING
     const pcbIndex = pcb.findIndex((p) => p.processId === highestPriorityJob.id);
@@ -254,6 +263,151 @@ function calculatePriority(processes: Process[]): SchedulingResult {
     if (pcbIndex !== -1) {
       pcb[pcbIndex].state = "COMPLETED";
       pcb[pcbIndex].remainingTime = 0;
+    }
+  }
+
+  return { timeline, pcb, metrics };
+}
+
+function calculateSRTF(processes: Process[]): SchedulingResult {
+  const timeline: TimelineItem[] = [];
+  const pcb: PCBItem[] = [];
+  const metrics: ProcessMetrics[] = [];
+
+  let currentTime = 0;
+  let lastProcessId: string | null = null;
+  const remainingProcesses = [...processes].map((p) => ({
+    ...p,
+    remainingTime: p.burstTime,
+  }));
+
+  processes.forEach((process) => {
+    pcb.push({
+      processId: process.id,
+      state: "WAITING",
+      remainingTime: process.burstTime,
+    });
+  });
+
+  while (remainingProcesses.some((p) => p.remainingTime > 0)) {
+    // Obtener los procesos disponibles en el tiempo actual
+    const availableProcesses = remainingProcesses.filter(
+      (p) => p.arrivalTime <= currentTime && p.remainingTime > 0
+    );
+
+    if (availableProcesses.length === 0) {
+      // Si no hay procesos disponibles, registrar tiempo inactivo
+      if (lastProcessId !== null) {
+        timeline[timeline.length - 1].endTime = currentTime;
+        lastProcessId = null; // Indicar que estamos en tiempo inactivo
+      }
+
+      timeline.push({
+        processId: "IDLE",
+        startTime: currentTime,
+        endTime: currentTime + 1, // Se actualizará en la siguiente iteración
+      });
+
+      currentTime++;
+      continue;
+    }
+
+    // Elegimos el proceso con menor tiempo restante
+    const shortestProcess = availableProcesses.reduce((prev, curr) =>
+      prev.remainingTime < curr.remainingTime ||
+      (prev.remainingTime === curr.remainingTime && prev.arrivalTime < curr.arrivalTime)
+        ? prev
+        : curr
+    );
+
+    // Si hay cambio de proceso, cerramos el segmento anterior
+    if (lastProcessId !== shortestProcess.id) {
+      if (lastProcessId !== null && timeline.length > 0) {
+        timeline[timeline.length - 1].endTime = currentTime;
+      }
+      timeline.push({
+        processId: shortestProcess.id,
+        startTime: currentTime,
+        endTime: currentTime + 1, // Se actualizará en la siguiente iteración
+      });
+    } else {
+      // Si el proceso sigue siendo el mismo, extendemos su ejecución
+      timeline[timeline.length - 1].endTime++;
+    }
+
+    // Reducimos el tiempo restante del proceso
+    shortestProcess.remainingTime--;
+    lastProcessId = shortestProcess.id;
+    currentTime++;
+
+    // Si el proceso ha terminado, calculamos sus métricas
+    if (shortestProcess.remainingTime === 0) {
+      const finishTime = currentTime;
+      const turnaroundTime = finishTime - shortestProcess.arrivalTime;
+      const waitingTime = turnaroundTime - shortestProcess.burstTime;
+
+      metrics.push({ processId: shortestProcess.id, waitingTime, turnaroundTime });
+
+      // Actualizar PCB
+      const pcbIndex = pcb.findIndex((p) => p.processId === shortestProcess.id);
+      if (pcbIndex !== -1) {
+        pcb[pcbIndex].state = "COMPLETED";
+        pcb[pcbIndex].remainingTime = 0;
+      }
+    }
+  }
+
+  // Asegurar que el último segmento tenga el endTime correcto
+  if (timeline.length > 0) {
+    timeline[timeline.length - 1].endTime = currentTime;
+  }
+
+  return { timeline, pcb, metrics };
+}
+
+function calculateRoundRobin(processes: Process[], quantum: number): SchedulingResult {
+  const timeline: TimelineItem[] = [];
+  const pcb: PCBItem[] = [];
+  const metrics: ProcessMetrics[] = [];
+
+  let currentTime = 0;
+  const queue: Process[] = [...processes].sort((a, b) => a.arrivalTime - b.arrivalTime);
+  const remainingTimes = new Map(queue.map((p) => [p.id, p.burstTime]));
+  const arrivalTimes = new Map(queue.map((p) => [p.id, p.arrivalTime]));
+
+  processes.forEach((process) => {
+    pcb.push({ processId: process.id, state: "WAITING", remainingTime: process.burstTime });
+  });
+
+  while (queue.length > 0) {
+    const process = queue.shift();
+    if (!process) continue;
+
+    const remainingTime = remainingTimes.get(process.id) || 0;
+    if (remainingTime <= 0) continue;
+
+    const executionTime = Math.min(quantum, remainingTime);
+    timeline.push({
+      processId: process.id,
+      startTime: currentTime,
+      endTime: currentTime + executionTime,
+    });
+
+    currentTime += executionTime;
+    remainingTimes.set(process.id, remainingTime - executionTime);
+
+    const pcbIndex = pcb.findIndex((p) => p.processId === process.id);
+    if (pcbIndex !== -1) {
+      pcb[pcbIndex].state = remainingTimes.get(process.id)! > 0 ? "WAITING" : "COMPLETED";
+      pcb[pcbIndex].remainingTime = remainingTimes.get(process.id)!;
+    }
+
+    if (remainingTimes.get(process.id)! > 0) {
+      queue.push(process);
+    } else {
+      const waitingTime = currentTime - (arrivalTimes.get(process.id)! + process.burstTime);
+      const turnaroundTime = waitingTime + process.burstTime;
+      metrics.push({ processId: process.id, waitingTime, turnaroundTime });
     }
   }
 

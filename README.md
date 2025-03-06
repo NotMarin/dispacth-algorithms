@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Simulador de Algoritmos de Despacho
 
-## Getting Started
+Este es un proyecto desarrollado en **Next.js 15.2.0**, con **TypeScript** y **TailwindCSS 4**, que permite la simulación visual de varios algoritmos de planificación de procesos en sistemas operativos.
 
-First, run the development server:
+## 📌 Características
+
+- Simulación de los algoritmos de despacho:
+  - **FIFO (First In, First Out)**
+  - **SJF (Shortest Job First)**
+  - **PCB (Process Control Block)**
+  - **SRTF (Shortest Remaining Time First)**
+  - **RR (Round Robin)**
+- Pantalla de inicio con un botón para acceder a la simulación de **FIFO**.
+- Navegación entre los algoritmos a través de un contenedor vertical tipo **slide**.
+- Modos **claro y oscuro**.
+
+## 🚀 Instalación y Ejecución
+
+Sigue estos pasos para ejecutar el proyecto localmente:
+
+### 1️⃣ Clonar el repositorio
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+ git clone https://github.com/NotMarin/dispacth-algorithms
+ cd dispacth-algorithms
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2️⃣ Instalar dependencias
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+ npm install
+ # o si usas yarn:
+ yarn install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3️⃣ Ejecutar el servidor de desarrollo
 
-## Learn More
+```bash
+ npm run dev
+ # o con yarn:
+ yarn dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+El servidor se iniciará en `http://localhost:3000/` por defecto.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tecnologías Usadas
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Next.js 15.2.0** - Framework para React con SSR y optimización automática.
+- **TypeScript** - Tipado estático para mayor seguridad en el código.
+- **TailwindCSS 4** - Framework de estilos para un diseño rápido y eficiente.
 
-## Deploy on Vercel
+## 📷 Capturas de Pantalla
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![Página Inicial](public/images/Dashboard.png)
+![Intro de Algoritmo](public/images/Intro.png)
+![Simulaión de Algoritmo](public/images/Simulacion.png)

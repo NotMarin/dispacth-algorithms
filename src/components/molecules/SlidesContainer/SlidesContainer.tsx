@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ChevronDown, ChevronUp } from "react-feather";
 
 interface Slide {
@@ -13,7 +13,6 @@ interface SlidesContainerProps {
 
 export default function SlidesContainer({ slides }: SlidesContainerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const isScrollingRef = useRef(false);
 
   const changeSlide = useCallback(
     (direction: "up" | "down") => {
@@ -24,29 +23,20 @@ export default function SlidesContainer({ slides }: SlidesContainerProps) {
     [slides.length]
   );
 
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowDown") changeSlide("down");
       if (event.key === "ArrowUp") changeSlide("up");
     };
 
-    const handleWheel = (event: WheelEvent) => {
-      if (isScrollingRef.current) return;
-      isScrollingRef.current = true;
-
-      changeSlide(event.deltaY > 0 ? "down" : "up");
-
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 500);
-    };
-
     window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("wheel", handleWheel);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("wheel", handleWheel);
     };
   }, [changeSlide]);
 
@@ -55,10 +45,10 @@ export default function SlidesContainer({ slides }: SlidesContainerProps) {
       {currentIndex !== 0 && (
         <button
           onClick={() => changeSlide("up")}
-          className="absolute top-3 z-10"
+          className="absolute top-3 z-10 cursor-pointer"
           disabled={currentIndex === 0}
         >
-          <ChevronUp size={24} />
+          <ChevronUp size={40} />
         </button>
       )}
 
@@ -78,11 +68,12 @@ export default function SlidesContainer({ slides }: SlidesContainerProps) {
         </AnimatePresence>
 
         {/* Indicadores de slide */}
-        <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col gap-2">
+        <div className="absolute top-1/2 left-4 flex -translate-y-1/2 flex-col gap-2">
           {slides.map((slide, index) => (
-            <div
+            <button
               key={slide.id}
-              className={`h-3 w-3 rounded-full transition-all ${
+              onClick={() => goToSlide(index)}
+              className={`h-3 w-3 cursor-pointer rounded-full transition-all focus:outline-none ${
                 index === currentIndex ? "bg-primary-600 scale-125 dark:bg-white" : "bg-gray-500"
               }`}
             />
@@ -94,10 +85,10 @@ export default function SlidesContainer({ slides }: SlidesContainerProps) {
       {currentIndex !== slides.length - 1 && (
         <button
           onClick={() => changeSlide("down")}
-          className="absolute bottom-3 z-10"
+          className="absolute bottom-3 z-10 cursor-pointer"
           disabled={currentIndex === slides.length - 1}
         >
-          <ChevronDown size={24} />
+          <ChevronDown size={40} />
         </button>
       )}
     </div>

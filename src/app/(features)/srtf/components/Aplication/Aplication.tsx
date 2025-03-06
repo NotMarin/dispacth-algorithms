@@ -42,11 +42,11 @@ export default function Aplication() {
     setShowAddProcess(false);
   };
 
-  const result = calculateScheduling(processes, "fifo");
+  const result = calculateScheduling(processes, "srtf");
 
   return (
     <div className="p-12">
-      <h2 className="text-2xl font-semibold">Simulador FiFo</h2>
+      <h2 className="text-2xl font-semibold">Simulador SRTF</h2>
       <div className="flex h-full gap-4">
         <div className="w-2/5 space-y-2">
           <h3 className="text-lg font-medium">Procesos</h3>
@@ -68,6 +68,7 @@ export default function Aplication() {
               onEdit={handleEditProcess}
               onAdd={handleAddProcess}
               onCancel={() => setShowAddProcess(false)}
+              showPriority
             />
           ) : (
             <AppButton className="w-full p-4" onClick={() => setShowAddProcess(true)}>

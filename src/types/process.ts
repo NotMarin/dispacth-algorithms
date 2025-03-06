@@ -5,10 +5,9 @@ export type Process = {
   arrivalTime: number;
   burstTime: number;
   priority?: number;
-  color: string;
 };
 
-export type SchedulingAlgorithm = "fifo" | "sjf" | "priority" | "roundRobin";
+export type SchedulingAlgorithm = "fifo" | "sjf" | "priority" | "srtf" | "rr";
 
 export type TimelineItem = {
   processId: string;

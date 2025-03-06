@@ -23,6 +23,8 @@ export default function Header() {
       { name: "FIFO", path: "/fifo" },
       { name: "SJF", path: "/sjf" },
       { name: "PCB", path: "/pcb" },
+      { name: "SRTF", path: "/srtf" },
+      { name: "RR", path: "/rr" },
     ],
     []
   );
