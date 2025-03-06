@@ -140,7 +140,7 @@ export default function AddProcessCard({
                   e.preventDefault();
                 }
               }}
-              value={newProcess.priority}
+              defaultValue={newProcess.priority}
               onChange={(e) => handleChange("priority", e.target.value)}
               className="w-full rounded border p-2"
             />
