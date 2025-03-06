@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <body className={`${poppins.className} antialiased`}>
+      <body className={`${poppins.className} antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" enableSystem defaultTheme="system">
           <LayoutProvider>{children}</LayoutProvider>
         </ThemeProvider>

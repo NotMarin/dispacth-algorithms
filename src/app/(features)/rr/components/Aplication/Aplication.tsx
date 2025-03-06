@@ -15,6 +15,7 @@ export default function Aplication() {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [showAddProcess, setShowAddProcess] = useState(false);
   const [editingProcess, setEditingProcess] = useState<Process | null>(null);
+  const [quantum, setQuantum] = useState(1);
 
   const handleEditProcess = (updatedProcess: Process) => {
     setProcesses((prev) => prev.map((p) => (p.id === updatedProcess.id ? updatedProcess : p)));
@@ -42,7 +43,7 @@ export default function Aplication() {
     setShowAddProcess(false);
   };
 
-  const result = calculateScheduling(processes, "rr", 2);
+  const result = calculateScheduling(processes, "rr", quantum);
 
   return (
     <div className="p-12">
@@ -71,10 +72,37 @@ export default function Aplication() {
               showPriority
             />
           ) : (
-            <AppButton className="w-full p-4" onClick={() => setShowAddProcess(true)}>
-              <Plus size={18} />
-              <span className="ml-2">Agregar Proceso</span>
-            </AppButton>
+            <div className="flex justify-between gap-4">
+              <AppButton className="w-full p-4" onClick={() => setShowAddProcess(true)}>
+                <Plus size={18} />
+                <span className="ml-2">Agregar Proceso</span>
+              </AppButton>
+              <div>
+                <label className="block text-sm font-medium">Quantum</label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  className="w-full rounded border p-2"
+                  defaultValue={quantum}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "." ||
+                      e.key === "," ||
+                      e.key === "e" ||
+                      e.key === "E" ||
+                      e.key === "-"
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    setQuantum(isNaN(value) ? 1 : Math.max(1, value));
+                  }}
+                />
+              </div>
+            </div>
           )}
         </div>
         <div className="w-full gap-4">

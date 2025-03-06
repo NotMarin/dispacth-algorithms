@@ -21,11 +21,12 @@ export default function AddProcessCard({
   editingProcess,
 }: AddProcessCardProps) {
   const [newProcess, setNewProcess] = useState<Process>(
-    editingProcess || { id: "", arrivalTime: 0, burstTime: 0, ...(showPriority && { priority: 1 }) }
+    editingProcess || { id: "", arrivalTime: 0, burstTime: 1, ...(showPriority && { priority: 0 }) }
   );
 
-  const isValidNumber = (value: string) => {
-    return /^\d+$/.test(value);
+  const handleChange = (key: keyof Process, value: string) => {
+    const parsedValue = parseInt(value, 10);
+    setNewProcess((prev) => ({ ...prev, [key]: isNaN(parsedValue) ? 0 : parsedValue }));
   };
 
   const handleSubmit = () => {
@@ -40,15 +41,9 @@ export default function AddProcessCard({
       return;
     }
 
-    if (
-      !isValidNumber(String(newProcess.arrivalTime)) ||
-      !isValidNumber(String(newProcess.burstTime)) ||
-      (showPriority && !isValidNumber(String(newProcess.priority!))) ||
-      newProcess.burstTime <= 0 ||
-      (showPriority && newProcess.priority! <= 0)
-    ) {
+    if (newProcess.arrivalTime < 0 || newProcess.burstTime <= 0) {
       toast.error(
-        "Todos los valores numéricos deben ser enteros positivos y mayores a 0, excepto el tiempo de llegada que puede ser 0.",
+        "Los valores numéricos deben ser enteros positivos y mayores a 0, excepto el tiempo de llegada.",
         {
           duration: 3000,
           progress: true,
@@ -66,7 +61,7 @@ export default function AddProcessCard({
       onAdd(newProcess);
     }
 
-    setNewProcess({ id: "", arrivalTime: 0, burstTime: 1, ...(showPriority && { priority: 0 }) });
+    setNewProcess({ id: "", arrivalTime: 0, burstTime: 1, ...(showPriority && { priority: 1 }) });
   };
 
   return (
@@ -78,7 +73,7 @@ export default function AddProcessCard({
             type="text"
             placeholder="ID"
             defaultValue={newProcess.id}
-            disabled={!!editingProcess} // Evita modificar el ID en edición
+            disabled={!!editingProcess}
             onChange={(e) => setNewProcess({ ...newProcess, id: e.target.value })}
             className="w-full rounded border p-2"
           />
@@ -87,13 +82,21 @@ export default function AddProcessCard({
           <label>Llegada</label>
           <input
             type="number"
-            min="1"
-            defaultValue={newProcess.arrivalTime}
-            onChange={(e) => {
-              if (isValidNumber(e.target.value)) {
-                setNewProcess({ ...newProcess, arrivalTime: Number(e.target.value) });
+            min={0}
+            step={1}
+            onKeyDown={(e) => {
+              if (
+                e.key === "." ||
+                e.key === "," ||
+                e.key === "e" ||
+                e.key === "E" ||
+                e.key === "-"
+              ) {
+                e.preventDefault();
               }
             }}
+            defaultValue={newProcess.arrivalTime}
+            onChange={(e) => handleChange("arrivalTime", e.target.value)}
             className="w-full rounded border p-2"
           />
         </div>
@@ -101,13 +104,21 @@ export default function AddProcessCard({
           <label>Ejecución</label>
           <input
             type="number"
-            min={0.01}
-            defaultValue={newProcess.burstTime}
-            onChange={(e) => {
-              if (isValidNumber(e.target.value) && Number(e.target.value) > 0) {
-                setNewProcess({ ...newProcess, burstTime: Number(e.target.value) });
+            min={1}
+            step={1}
+            onKeyDown={(e) => {
+              if (
+                e.key === "." ||
+                e.key === "," ||
+                e.key === "e" ||
+                e.key === "E" ||
+                e.key === "-"
+              ) {
+                e.preventDefault();
               }
             }}
+            defaultValue={newProcess.burstTime}
+            onChange={(e) => handleChange("burstTime", e.target.value)}
             className="w-full rounded border p-2"
           />
         </div>
@@ -116,13 +127,21 @@ export default function AddProcessCard({
             <label>Prioridad</label>
             <input
               type="number"
-              min="0"
-              defaultValue={newProcess.priority}
-              onChange={(e) => {
-                if (isValidNumber(e.target.value) && Number(e.target.value) > 0) {
-                  setNewProcess({ ...newProcess, priority: Number(e.target.value) });
+              min={0}
+              step={1}
+              onKeyDown={(e) => {
+                if (
+                  e.key === "." ||
+                  e.key === "," ||
+                  e.key === "e" ||
+                  e.key === "E" ||
+                  e.key === "-"
+                ) {
+                  e.preventDefault();
                 }
               }}
+              value={newProcess.priority}
+              onChange={(e) => handleChange("priority", e.target.value)}
               className="w-full rounded border p-2"
             />
           </div>

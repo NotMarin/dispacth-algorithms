@@ -6,14 +6,16 @@ import MarinDevLogo from "../../../../public/MarinDevLogo";
 import UTPLogo from "../../../../public/UTPLogo";
 import { GitHub, Moon, Sun } from "react-feather";
 import { useTheme } from "next-themes";
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 
 export default function Header() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const toggleTheme = useCallback(() => {
+    if (!theme) return;
     setTheme(theme === "light" ? "dark" : "light");
   }, [theme, setTheme]);
 
@@ -28,6 +30,12 @@ export default function Header() {
     ],
     []
   );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <header className="grid w-full grid-cols-[auto_1fr_auto] items-center px-8 py-2">
