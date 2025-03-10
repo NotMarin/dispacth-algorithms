@@ -69,7 +69,6 @@ export default function Aplication() {
               onEdit={handleEditProcess}
               onAdd={handleAddProcess}
               onCancel={() => setShowAddProcess(false)}
-              showPriority
             />
           ) : (
             <div className="flex justify-between gap-4">

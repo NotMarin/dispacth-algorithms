@@ -1,4 +1,5 @@
 "use client";
+import { motion } from "framer-motion";
 import type { Process, SchedulingResult } from "@/types/process";
 
 export default function GanttChart({
@@ -26,9 +27,15 @@ export default function GanttChart({
                 <div className="w-24 flex-shrink-0" />
                 <div className="flex flex-grow">
                   {Array.from({ length: totalTime }).map((_, i) => (
-                    <div key={i} className="-ml-1 h-4 w-full text-left text-[11px]">
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="-ml-1 h-4 w-full text-left text-[11px]"
+                    >
                       {i}
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -40,7 +47,13 @@ export default function GanttChart({
                 );
 
                 return (
-                  <div key={process.id} className="mb-1 flex h-10 items-center">
+                  <motion.div
+                    key={process.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mb-1 flex h-10 items-center"
+                  >
                     <div className="border-primary-600 flex h-8 w-24 flex-shrink-0 items-center justify-center border-r pr-2 text-sm font-medium dark:border-white">
                       {process.id}
                     </div>
@@ -48,35 +61,37 @@ export default function GanttChart({
                       {/* Timeline grid */}
                       <div className="absolute inset-0 flex">
                         {Array.from({ length: totalTime }).map((_, i) => (
-                          <div
+                          <motion.div
                             key={i}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.02 }}
                             className="border-primary-600 h-full flex-grow border-r dark:border-white"
                           />
                         ))}
                       </div>
 
                       {/* Process execution blocks */}
-                      {/* Bloques de ejecución */}
                       {processTimeline.map((item, index) => (
-                        <div
+                        <motion.div
                           key={index}
-                          className={
-                            "bg-primary-600 dark:text-primary-950 absolute flex h-8 items-center justify-center text-sm text-white dark:bg-white"
-                          }
-                          style={{
-                            left: `${(item.startTime / totalTime) * 100}%`,
+                          initial={{ width: 0 }}
+                          animate={{
                             width: `${((item.endTime - item.startTime) / totalTime) * 100}%`,
                           }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          className="bg-primary-600 dark:text-primary-950 absolute flex h-8 items-center justify-center text-sm text-white dark:bg-white"
+                          style={{ left: `${(item.startTime / totalTime) * 100}%` }}
                         >
                           {item.endTime - item.startTime > 0 && (
                             <div className="text-sm">
                               {item.processId !== "IDLE" ? process.id : ""}
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

@@ -371,15 +371,30 @@ function calculateRoundRobin(processes: Process[], quantum: number): SchedulingR
   const metrics: ProcessMetrics[] = [];
 
   let currentTime = 0;
-  const queue: Process[] = [...processes].sort((a, b) => a.arrivalTime - b.arrivalTime);
-  const remainingTimes = new Map(queue.map((p) => [p.id, p.burstTime]));
-  const arrivalTimes = new Map(queue.map((p) => [p.id, p.arrivalTime]));
+  const queue: Process[] = [];
+  const remainingTimes = new Map(processes.map((p) => [p.id, p.burstTime]));
+  const arrivalTimes = new Map(processes.map((p) => [p.id, p.arrivalTime]));
 
-  processes.forEach((process) => {
-    pcb.push({ processId: process.id, state: "WAITING", remainingTime: process.burstTime });
-  });
+  // Ordenar procesos por tiempo de llegada y agregarlos progresivamente a la cola
+  const sortedProcesses = [...processes].sort((a, b) => a.arrivalTime - b.arrivalTime);
+  let processIndex = 0;
 
-  while (queue.length > 0) {
+  while (queue.length > 0 || processIndex < sortedProcesses.length) {
+    // Agregar procesos a la cola cuando llegan
+    while (
+      processIndex < sortedProcesses.length &&
+      sortedProcesses[processIndex].arrivalTime <= currentTime
+    ) {
+      queue.push(sortedProcesses[processIndex]);
+      processIndex++;
+    }
+
+    if (queue.length === 0) {
+      // Si no hay procesos listos, avanzar el tiempo al siguiente proceso en la lista
+      currentTime = sortedProcesses[processIndex].arrivalTime;
+      continue;
+    }
+
     const process = queue.shift();
     if (!process) continue;
 
@@ -396,15 +411,20 @@ function calculateRoundRobin(processes: Process[], quantum: number): SchedulingR
     currentTime += executionTime;
     remainingTimes.set(process.id, remainingTime - executionTime);
 
-    const pcbIndex = pcb.findIndex((p) => p.processId === process.id);
-    if (pcbIndex !== -1) {
-      pcb[pcbIndex].state = remainingTimes.get(process.id)! > 0 ? "WAITING" : "COMPLETED";
-      pcb[pcbIndex].remainingTime = remainingTimes.get(process.id)!;
+    // Agregar nuevos procesos que llegan en este intervalo de tiempo
+    while (
+      processIndex < sortedProcesses.length &&
+      sortedProcesses[processIndex].arrivalTime <= currentTime
+    ) {
+      queue.push(sortedProcesses[processIndex]);
+      processIndex++;
     }
 
+    // Si el proceso aún tiene tiempo restante, se vuelve a agregar a la cola
     if (remainingTimes.get(process.id)! > 0) {
       queue.push(process);
     } else {
+      // Calcular métricas cuando el proceso termina
       const waitingTime = currentTime - (arrivalTimes.get(process.id)! + process.burstTime);
       const turnaroundTime = waitingTime + process.burstTime;
       metrics.push({ processId: process.id, waitingTime, turnaroundTime });
